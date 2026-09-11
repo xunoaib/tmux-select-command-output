@@ -45,7 +45,7 @@ set -g @plugin '~/.tmux/plugins/tmux-select-command-output'
 
 | Key                  | Context        | Action                                             |
 |----------------------|----------------|-----------------------------------------------------|
-| `prefix + v` / `V`   | normal         | Select the most recently completed command's output |
+| `prefix + v`         | normal         | Select the most recently completed command's output |
 | `[`                  | copy mode      | Move the selection to an older command               |
 | `]`                  | copy mode      | Move the selection to a newer command                 |
 
@@ -53,6 +53,13 @@ Once a selection is made, copy it with any normal copy-mode bind (`y`,
 Enter, mouse drag release, etc.) - this plugin only handles selection, not
 copying, so it composes with whatever copy/clipboard setup you already
 use (e.g. [tmux-yank](https://github.com/tmux-plugins/tmux-yank)).
+
+Want a second key bound to the same action? Bind it yourself, pointing at
+the plugin's script directly:
+
+```tmux
+bind-key V run-shell '~/.tmux/plugins/tmux-select-command-output/scripts/select_command_output.sh'
+```
 
 ## Configuration
 
@@ -63,7 +70,6 @@ above.
 | Option                                       | Default | Description                                                                 |
 |-----------------------------------------------|---------|------------------------------------------------------------------------------|
 | `@select-command-output-key`                  | `v`     | Prefix key to select the last command's output. Set to `''` to disable.      |
-| `@select-command-output-key-alt`              | `V`     | Second prefix key for the same action. Set to `''` to disable.               |
 | `@select-command-output-older-key`            | `[`     | Copy-mode key to move the selection to an older command.                     |
 | `@select-command-output-newer-key`            | `]`     | Copy-mode key to move the selection to a newer command.                      |
 | `@select-command-output-prompt-char`          | `❯`     | Character each prompt line starts with.                                      |

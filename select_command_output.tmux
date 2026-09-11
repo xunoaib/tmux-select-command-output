@@ -17,14 +17,13 @@ get_tmux_option() {
 }
 
 key=$(get_tmux_option "@select-command-output-key" "v")
-key_alt=$(get_tmux_option "@select-command-output-key-alt" "V")
 older_key=$(get_tmux_option "@select-command-output-older-key" "[")
 newer_key=$(get_tmux_option "@select-command-output-newer-key" "]")
 
-# select the most recently completed command's output; set either key
-# option to an empty string to disable it
+# select the most recently completed command's output; set to an empty
+# string to disable, or bind additional keys yourself, e.g.:
+#   bind-key V run-shell '~/.tmux/plugins/tmux-select-command-output/scripts/select_command_output.sh'
 [ -n "$key" ] && tmux bind-key "$key" run-shell "$SCRIPT"
-[ -n "$key_alt" ] && tmux bind-key "$key_alt" run-shell "$SCRIPT"
 
 # while already in copy mode: move the selection to an older/newer command
 [ -n "$older_key" ] && tmux bind-key -T copy-mode "$older_key" run-shell "$SCRIPT older"
