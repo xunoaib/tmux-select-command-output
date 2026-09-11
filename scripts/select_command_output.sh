@@ -41,6 +41,7 @@ get_tmux_option() {
 prompt_char=$(get_tmux_option "@select-command-output-prompt-char" "❯")
 prompt_lines=$(get_tmux_option "@select-command-output-prompt-lines" "1")
 live_prompt_lines=$(get_tmux_option "@select-command-output-live-prompt-lines" "3")
+verbose=$(get_tmux_option "@select-command-output-verbose" "off")
 
 arg=${1:-1}
 
@@ -134,8 +135,10 @@ tmux send-keys -X end-of-line
 tmux send-keys -X begin-selection
 tmux send-keys -X search-backward "$prompt_char"
 
-if (( n == 1 )); then
-    tmux display-message "Selected last command's output"
-else
-    tmux display-message "Selected output from ${n} commands back"
+if [[ "$verbose" == "on" ]]; then
+    if (( n == 1 )); then
+        tmux display-message "Selected last command's output"
+    else
+        tmux display-message "Selected output from ${n} commands back"
+    fi
 fi

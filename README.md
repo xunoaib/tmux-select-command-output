@@ -75,6 +75,7 @@ above.
 | `@select-command-output-prompt-char`          | `❯`     | Regular expression each prompt line starts with (see below).                 |
 | `@select-command-output-prompt-lines`         | `1`     | Total lines an already-submitted prompt occupies (its own prompt line inclusive). |
 | `@select-command-output-live-prompt-lines`    | `3`     | Total lines the current, not-yet-submitted prompt occupies.                  |
+| `@select-command-output-verbose`              | `off`   | Set to `on` to show a status message ("Selected output from N commands back") after each selection. Boundary/error messages (e.g. "only N previous commands in view") always show. |
 
 `@select-command-output-prompt-char` is matched as a regular expression
 (anchored to the start of the line), not a literal character, so it can
