@@ -13,7 +13,13 @@
 #
 # "older"/"newer" are meant to be bound inside copy-mode itself, so a
 # selection can be walked backward/forward through scrollback. They track
-# which command is currently selected via the pane's @select_cmd_n option.
+# which command is currently selected via the pane's @select_cmd_n option,
+# and - as long as nothing else has moved the cursor since the last
+# selection - navigate directly from it instead of resetting to the bottom
+# of the pane, to avoid a visible flicker on every press. If you manually
+# move the cursor in copy mode (scrolling, search, etc.) and then press
+# older/newer, it may select the wrong command; press the main select key
+# again to reset.
 #
 # Requires every shell prompt line to start with a marker character
 # (default "❯", e.g. powerlevel10k's default prompt char) and expects a
@@ -43,9 +49,12 @@ max_n=$(( count - 1 ))
 current_n=$(tmux show-option -pqv @select_cmd_n)
 current_n=${current_n:-0}
 
+relative=false
+
 case "$arg" in
     older)
         n=$(( current_n + 1 ))
+        (( current_n >= 1 )) && relative=true
         ;;
     newer)
         if (( current_n <= 1 )); then
@@ -53,6 +62,7 @@ case "$arg" in
             exit 0
         fi
         n=$(( current_n - 1 ))
+        relative=true
         ;;
     *)
         if ! [[ "$arg" =~ ^[0-9]+$ ]] || (( arg < 1 )); then
@@ -74,25 +84,48 @@ fi
 
 tmux set-option -p @select_cmd_n "$n"
 
-# Re-enter copy mode fresh so the cursor starts from the pane's actual
-# current position (cancel is a no-op error if not already in copy mode).
-tmux send-keys -X cancel 2>/dev/null || true
-tmux copy-mode
-tmux send-keys -X start-of-line
-
-if (( n > 1 )); then
-    # Walk back to the prompt line of the next-more-recent command, then
-    # step past its (fixed-size) prompt block to land on the last line of
-    # our target command's output.
-    tmux send-keys -X -N $(( n - 1 )) search-backward "$prompt_char"
-    tmux send-keys -X -N "$prompt_lines" cursor-up
+if [[ "$relative" == true ]]; then
+    # The cursor is already resting on the currently-selected command's
+    # prompt line (see below) - move directly from there instead of
+    # resetting to the bottom of the pane, so copy mode never flickers.
+    if [[ "$arg" == older ]]; then
+        # Step past the current command's own (fixed-size) prompt block to
+        # land on the last line of the target (older) command's output.
+        tmux send-keys -X -N "$prompt_lines" cursor-up
+    else
+        # Step forward onto the target (newer) command's own prompt line,
+        # then again onto whatever follows it (either another prompt line,
+        # or the bottommost not-yet-submitted prompt), to use as a
+        # reference point for stepping back onto the end of its output.
+        tmux send-keys -X search-forward "$prompt_char"
+        tmux send-keys -X search-forward "$prompt_char"
+        if (( n > 1 )); then
+            tmux send-keys -X -N "$prompt_lines" cursor-up
+        else
+            tmux send-keys -X -N $(( live_prompt_lines - 1 )) cursor-up
+        fi
+    fi
 else
-    # The bottommost (not-yet-submitted) prompt is often taller than a
-    # normal prompt (e.g. a blank spacer + segment line above the "❯"
-    # line, as with powerlevel10k's transient prompt). Skip past all but
-    # its own line to land on the last line of the previous command's
-    # output.
-    tmux send-keys -X -N $(( live_prompt_lines - 1 )) cursor-up
+    # Re-enter copy mode fresh so the cursor starts from the pane's actual
+    # current position (cancel is a no-op error if not already in copy mode).
+    tmux send-keys -X cancel 2>/dev/null || true
+    tmux copy-mode
+    tmux send-keys -X start-of-line
+
+    if (( n > 1 )); then
+        # Walk back to the prompt line of the next-more-recent command, then
+        # step past its (fixed-size) prompt block to land on the last line
+        # of our target command's output.
+        tmux send-keys -X -N $(( n - 1 )) search-backward "$prompt_char"
+        tmux send-keys -X -N "$prompt_lines" cursor-up
+    else
+        # The bottommost (not-yet-submitted) prompt is often taller than a
+        # normal prompt (e.g. a blank spacer + segment line above the "❯"
+        # line, as with powerlevel10k's transient prompt). Skip past all but
+        # its own line to land on the last line of the previous command's
+        # output.
+        tmux send-keys -X -N $(( live_prompt_lines - 1 )) cursor-up
+    fi
 fi
 
 tmux send-keys -X end-of-line
