@@ -21,10 +21,12 @@
 # older/newer, it may select the wrong command; press the main select key
 # again to reset.
 #
-# Requires every shell prompt line to start with a marker character
-# (default "❯", e.g. powerlevel10k's default prompt char) and expects a
-# predictable number of lines per prompt - see the options below and the
-# README for how to adapt this to other prompt configurations.
+# Requires every shell prompt line to start with a marker (default "❯", e.g.
+# powerlevel10k's default prompt char - matched as a regex, so a bracket
+# expression like "[❯❮]" can recognize more than one marker, e.g. for vi-mode
+# prompts that swap characters) and expects a predictable number of lines per
+# prompt - see the options below and the README for how to adapt this to
+# other prompt configurations.
 
 set -euo pipefail
 

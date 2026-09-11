@@ -72,9 +72,19 @@ above.
 | `@select-command-output-key`                  | `v`     | Prefix key to select the last command's output. Set to `''` to disable.      |
 | `@select-command-output-older-key`            | `[`     | Copy-mode key to move the selection to an older command.                     |
 | `@select-command-output-newer-key`            | `]`     | Copy-mode key to move the selection to a newer command.                      |
-| `@select-command-output-prompt-char`          | `❯`     | Character each prompt line starts with.                                      |
+| `@select-command-output-prompt-char`          | `❯`     | Regular expression each prompt line starts with (see below).                 |
 | `@select-command-output-prompt-lines`         | `1`     | Total lines an already-submitted prompt occupies (its own prompt line inclusive). |
 | `@select-command-output-live-prompt-lines`    | `3`     | Total lines the current, not-yet-submitted prompt occupies.                  |
+
+`@select-command-output-prompt-char` is matched as a regular expression
+(anchored to the start of the line), not a literal character, so it can
+recognize more than one marker - handy if your prompt shows a different
+character depending on state, e.g. `zsh-vi-mode`/similar plugins that swap
+Powerlevel10k's `❯` for `❮` in vi-normal mode:
+
+```tmux
+set -g @select-command-output-prompt-char '[❯❮]'
+```
 
 For example, for a plain single-line prompt like `$ ` with no transient
 collapsing:
